@@ -1,7 +1,8 @@
+#include <stdlib.h>
+#include <stdbool.h>
+
 #include <avr/io.h>
 #include <util/delay.h>
-
-#include <stdbool.h>
 
 #include "sk6812.h"
 
@@ -70,6 +71,10 @@ int main(void)
 
 	uint32_t led_offset = 0;
 
+	uint8_t last_index = 42;
+
+	uint8_t r = 0, g = 0, b = 0;
+
 	bool data_captured_since_last_overflow = true;
 	bool idle = true;
 
@@ -93,7 +98,8 @@ int main(void)
 				time_delta -= 32768;
 			}
 
-			if(time_delta > 468) { // filter: ignore intervals < 30 ms
+			//if(time_delta > 468) { // filter: ignore intervals < 30 ms
+			if(time_delta > 234) { // filter: ignore intervals < 15 ms
 				last_capture = cur_capture;
 				uint32_t new_speed = WHEEL_CIRCUMFERENCE * TIMER_TICKS_PER_SECOND / time_delta / TICKS_PER_TURN; // millimeter per second
 				//                   ^^^ unit: mm ^^^^^^                            ^ ticks (unit: seconds)
@@ -138,7 +144,7 @@ int main(void)
 		// secs = led_update_time_delta / TIMER_TICKS_PER_SECOND;   value < 1
 		// led_offset += 16 * secs * speed / LED_DISTANCE
 
-		led_offset += 0x10000UL * ((uint32_t)led_update_time_delta) * ((uint32_t)speed) / TIMER_TICKS_PER_SECOND * 4UL / LED_DISTANCE;
+		led_offset += 0x100UL * ((uint32_t)led_update_time_delta) * ((uint32_t)speed) / TIMER_TICKS_PER_SECOND * 4UL / LED_DISTANCE;
 
 		if(led_offset >= 0x80000000) {
 			led_offset -= 0x80000000;
@@ -147,22 +153,33 @@ int main(void)
 		// update LEDs
 		reset_strips();
 
+
 		if(idle) {
 			for(uint8_t i = 0; i < 54; i++) {
 				sk6812_setpixel(i, 0x00, 0x00, 0x10, 0x00);
 			}
 		} else {
-			uint8_t index = (uint8_t)((led_offset >> 16) & 0xFF) % 33;
+			uint8_t index = (uint8_t)((led_offset >> 8) & 0xFF) % 33;
+
+			if(last_index != 0 && index == 0) {
+				uint8_t color = rand() & 0x7;
+
+				r = color & (1 << 0) ? 0xFF : 0x00;
+				g = color & (1 << 1) ? 0xFF : 0x00;
+				b = color & (1 << 2) ? 0xFF : 0x00;
+			}
+
+			last_index = index;
 
 			for(uint8_t off = 0; off < 3; off++) {
 				uint8_t local_idx = index + off - 2;
 
-				if(local_idx > 27) {
+				if(local_idx >= 27) {
 					continue;
 				}
 
-				sk6812_setpixel(local_idx, 0x00, 0x00, 0x00, 0xFF);
-				sk6812_setpixel(27+local_idx, 0x00, 0x00, 0x00, 0xFF);
+				sk6812_setpixel(local_idx, r, g, b, 0x80);
+				sk6812_setpixel(27+local_idx, r, g, b, 0x80);
 			}
 		}
 
