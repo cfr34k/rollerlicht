@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define NLEDS 4
+#define NLEDS 54
 
 /*!
  * Structure representing a pixel on the SK6812 strip.

@@ -4,6 +4,9 @@
 
 #include "sk6812.h"
 
+// OC0B / PD5 / D5
+#define SK6812_PORT PORTD
+#define SK6812_DDR DDRD
 #define SK6812_PIN PIN5
 
 static struct SK6812Pixel sk6812_data[NLEDS];
@@ -15,8 +18,8 @@ void sk6812_init(void)
 {
 	memset(&sk6812_data, 0, sizeof(sk6812_data));
 
-	PORTD &= ~(1 << SK6812_PIN);
-	DDRD |= (1 << SK6812_PIN);
+	SK6812_PORT &= ~(1 << SK6812_PIN);
+	SK6812_DDR  |= (1 << SK6812_PIN);
 
 	TCCR0A = (1 << WGM01) | (1 << WGM00);
 	TCCR0B = (1 << WGM02);
@@ -99,6 +102,6 @@ void sk6812_update(void)
 	while((TIFR0 & (1 << OCF0B)) == 0); // wait for next timer compare
 
 	stop_timer();
-	PORTD &= ~(1 << SK6812_PIN);
+	SK6812_PORT &= ~(1 << SK6812_PIN);
 }
 
