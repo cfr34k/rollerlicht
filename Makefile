@@ -23,7 +23,7 @@ BUILD:=debug
 # basic build flags configuration
 CFLAGS+=-Wall -std=c11 -pedantic -Wextra -Wimplicit-function-declaration \
         -Wredundant-decls -Wmissing-prototypes -Wstrict-prototypes \
-        -Wundef -Wshadow
+        -Wundef -Wshadow -Werror
 
 LDFLAGS+=
 
