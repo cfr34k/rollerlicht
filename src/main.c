@@ -175,6 +175,7 @@ static void walking_light(uint32_t *offset) {
 
 #else
 
+#define SPEEDUP 4
 #define RAINBOW_LENGTH (3 * LUT_LENGTH / 2)
 
 static void rainbow(uint32_t *offset) {
@@ -183,7 +184,7 @@ static void rainbow(uint32_t *offset) {
 	uint16_t start_idx = (uint16_t)((*offset >> 8) & 0xFFFF);
 
 	for(uint8_t i = 0; i < 27; i++) {
-		int16_t local_idx = (start_idx + (26-i)) % RAINBOW_LENGTH;
+		int16_t local_idx = ((start_idx + (26-i)) * SPEEDUP) % RAINBOW_LENGTH;
 
 		if(local_idx < (signed)LUT_LENGTH/2) {
 			b = pgm_read_byte(pulse + local_idx + LUT_LENGTH/2);
