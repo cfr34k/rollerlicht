@@ -173,7 +173,7 @@ static void walking_light(uint32_t *offset) {
 	}
 }
 
-#else
+#elif 0
 
 #define SPEEDUP 4
 #define RAINBOW_LENGTH (3 * LUT_LENGTH / 2)
@@ -218,6 +218,65 @@ static void rainbow(uint32_t *offset) {
 		sk6812_setpixel(27+i, r, g, b, 0x00);
 	}
 }
+
+#elif 1
+
+static void longstripes(uint32_t *offset) {
+	static uint8_t last_index = 42;
+
+	static uint8_t r = 0, g = 0, b = 0, w = 0;
+
+	uint8_t index = (*offset >> 8) % 81;
+
+	if(last_index != 0 && index == 0) {
+		uint8_t color = rand() & 0x7;
+
+		switch(color) {
+			case 0:
+			case 7:
+				r = 0x00; g = 0x00; b = 0x00; w = 0x80;
+				break;
+
+			case 1:
+				r = 0x80; g = 0x00; b = 0x00; w = 0x40;
+				break;
+
+			case 2:
+				r = 0x00; g = 0x80; b = 0x00; w = 0x40;
+				break;
+
+			case 3:
+				r = 0x60; g = 0x60; b = 0x00; w = 0x30;
+				break;
+
+			case 4:
+				r = 0x00; g = 0x00; b = 0x80; w = 0x40;
+				break;
+
+			case 5:
+				r = 0x60; g = 0x00; b = 0x60; w = 0x30;
+				break;
+
+			case 6:
+				r = 0x00; g = 0x60; b = 0x60; w = 0x30;
+				break;
+		}
+	}
+
+	last_index = index;
+
+	for(uint8_t off = 0; off < 27; off++) {
+		uint8_t local_idx = index + off - 27;
+
+		if(local_idx >= 27) {
+			continue;
+		}
+
+		sk6812_setpixel(local_idx, r, g, b, w);
+		sk6812_setpixel(27+local_idx, r, g, b, w);
+	}
+}
+
 
 #endif
 
@@ -313,7 +372,8 @@ int main(void)
 			idle_animation(&frame_update_time_delta, false);
 		} else {
 			//walking_light(&led_offset);
-			rainbow(&led_offset);
+			//rainbow(&led_offset);
+			longstripes(&led_offset);
 		}
 
 		sk6812_update();
